@@ -1,4 +1,4 @@
--module(test02).
+-module(test03).
 -export([
     new_navy/4,
     fight/2

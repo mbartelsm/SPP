@@ -1,4 +1,4 @@
--module(test03).
+-module(test04).
 -export([init/1]).
 
 %% Start with a list of processes and a number
