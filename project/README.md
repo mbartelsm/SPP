@@ -4,32 +4,28 @@
 |---                    |---            |---            |
 | Callback Fun          | Ok            | --            |
 | Anonymous Fun         | Ok            | --            |
-| Named Fun             | No load[^1]   | --            |
-| Named Fun recursion   | No load[^1]   | --            |
-| Fold                  | Not ok[^2]    | --            |
+| Named Fun             | No load^1   | --            |
+| Named Fun recursion   | No load^1   | --            |
+| Fold                  | Not ok^2    | --            |
 | Spawn                 | Ok            | --            |
-| Link                  | Freeze[^3]    | --            |
-| Monitor               | Freeze[^3]    | --            |
-| spawn_link            | Crash[^4]     | --            |
-| spawn_monitor         | Crash[^4]     | --            |
-| Exit                  | Freeze[^3]    | Freeze[^3]    |
-| Kill                  | Freeze[^3]    | Freeze[^3]    |
+| Link                  | Freeze^3    | --            |
+| Monitor               | Freeze^3    | --            |
+| spawn_link            | Crash^4     | --            |
+| spawn_monitor         | Crash^4     | --            |
+| Exit                  | Freeze^3    | Freeze^3    |
+| Kill                  | Freeze^3    | Freeze^3    |
 | Sleep                 | Ok            | Ok            |
 | Message               | Ok            | Ok            |
 | Receive               | Ok            | Ok            |
-| Receive w/ timeout    | No load[^1]   | --            |
+| Receive w/ timeout    | No load^1   | --            |
 
 
 ## Notes
 
-[^1]: File is not loaded, no messages are shown by the UI. Error displayed by terminal is below.
-
-[^2]: Produces erroneous output, crashes when inspecting value on Bindings panel. Details below
-
-[^3]: Debugging UI becomes greyed out on exit call with status "Performing forward steps...". No error messages on terminal.
-
-[^4]: Cauder crashes on process creation. If the debugger is not focused on the triggering process, it does not crash until that process is selected. Trapping exits does not change anything.
-
+1. File is not loaded, no messages are shown by the UI. Error displayed by terminal is below.
+2. Produces erroneous output, crashes when inspecting value on Bindings panel. Details below
+3. Debugging UI becomes greyed out on exit call with status "Performing forward steps...". No error messages on terminal.
+4. Cauder crashes on process creation. If the debugger is not focused on the triggering process, it does not crash until that process is selected. Trapping exits does not change anything.
 
 ### Named Funs
 
