@@ -1,13 +1,17 @@
 -module(super).
 -export([
-    init/1,
-    pipe_msg/3,
-    make_req/2
+    init/2,
+    send_msg/3,
+    get_msg/1,
+    as_finished/1,
+    as_bad_protocol/1
 ]).
 
 
-init(Function) ->
-    Process = spawn(Function),
+init(Function, Network) ->
+    Self = self(),
+    NewNetwork = state:set(super, Self, Network),
+    Process = spawn(Function(NewNetwork)),
     supervise(Process).
 
 
@@ -22,7 +26,7 @@ supervise(Process) ->
         % Request from process
         { Process, Msg } ->
             ping_or_exit(Process),
-            handle_request(Msg);
+            handle_state(Process, Msg);
 
         % From outside to process
         { Sender, Msg } ->
@@ -36,8 +40,11 @@ supervise(Process) ->
     supervise(Process).
 
 
-handle_request(_Request) ->
-    ok.
+handle_state(Process, Request) ->
+    case Request of
+        finished -> terminate(Process);
+        bad_protocol -> terminate(Process, bad_protocol)
+    end.
 
 
 ping_or_exit(Process) ->
@@ -57,9 +64,19 @@ terminate(Process, Reason) ->
     exit(Reason).
 
 
-pipe_msg(Super, Dest, Msg) ->
+send_msg(Super, Dest, Msg) ->
     Super ! { self(), Dest, Msg }.
 
 
-make_req(Super, Request) ->
-    Super ! { self(), Request }.
+get_msg(Super) ->
+    receive
+        { Super, Sender, Msg } -> { Sender, Msg }
+    end.
+
+
+as_finished(Super) ->
+    Super ! { self(), finished }.
+
+
+as_bad_protocol(Super) ->
+    Super ! { self(), bad_protocol }.
