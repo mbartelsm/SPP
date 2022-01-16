@@ -3,6 +3,7 @@
     init/2,
     send_msg/3,
     get_msg/1,
+    get_msg_from/2,
     as_finished/1,
     as_bad_protocol/1
 ]).
@@ -74,9 +75,17 @@ get_msg(Super) ->
     end.
 
 
+get_msg_from(Super, Sender) ->
+    receive
+        { Super, Sender, Msg } -> { Sender, Msg }
+    end.
+
+
 as_finished(Super) ->
-    Super ! { self(), finished }.
+    Super ! { self(), finished },
+    exit(normal).
 
 
 as_bad_protocol(Super) ->
-    Super ! { self(), bad_protocol }.
+    Super ! { self(), bad_protocol },
+    exit(bad_protocol).
