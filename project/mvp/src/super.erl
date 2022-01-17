@@ -11,7 +11,7 @@
 
 init(Function, Network) ->
     Self = self(),
-    NewNetwork = state:set(super, Self, Network),
+    NewNetwork = state:add(super, Self, Network),
     Process = spawn(Function(NewNetwork)),
     supervise(Process).
 

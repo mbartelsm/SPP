@@ -1,41 +1,43 @@
 -module(state).
 -export([
-    set_val/2,
-    set_val/3,
-    get_val/2,
-    remove_key/2
+    empty/0,
+    add/2,
+    add/3,
+    get/2,
+    remove/2
 ]).
 
+empty() -> [].
 
-set_val(Key, Value) ->
-    set_val(Key, Value, []).
+add(Key, Value) ->
+    add(Key, Value, []).
 
-set_val(Key, Value, State) ->
-    State_1 = remove_key(Key, State),
+add(Key, Value, State) ->
+    State_1 = remove(Key, State),
     [{Key, Value} | State_1].
 
 
-get_val(Key, State) ->
-    get_val(Key, [], State).
+get(Key, State) ->
+    get(Key, [], State).
 
-get_val(Key, Searched, [This | Unsearched]) ->
+get(Key, Searched, [This | Unsearched]) ->
     case This of
         { Key, Value } -> Value;
-        { _Other, _V } -> get_val(Key, [This | Searched], Unsearched)
+        { _Other, _V } -> get(Key, [This | Searched], Unsearched)
     end;
 
-get_val(_Key, _Searched, []) ->
+get(_Key, _Searched, []) ->
     { none, none }.
 
 
-remove_key(Key, State) ->
-    remove_key(Key, [], State).
+remove(Key, State) ->
+    remove(Key, [], State).
 
-remove_key(Key, Searched, [This | Unsearched]) ->
+remove(Key, Searched, [This | Unsearched]) ->
     case This of
-        { Key, _ } -> remove_key(Key, Searched, Unsearched);
-        _          -> remove_key(Key, [This | Searched], Unsearched)
+        { Key, _ } -> remove(Key, Searched, Unsearched);
+        _          -> remove(Key, [This | Searched], Unsearched)
     end;
 
-remove_key(_Key, Searched, []) ->
+remove(_Key, Searched, []) ->
     Searched.
