@@ -7,7 +7,6 @@
 % Inits
 
 init(Network) ->
-    log:info(?MODULE_STRING, "initing with ~w", [Network]),
     % Start the supervisor and make it spawn us
     super:init(fun(N) -> deploy(N) end, Network).
 
