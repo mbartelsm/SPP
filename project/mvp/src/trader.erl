@@ -19,11 +19,11 @@ deploy(Network_0) ->
     await_quote_alice(Network_2).
 
 
-make_lead(Netowrk, Name) ->
+make_lead(Network, Name) ->
     log:info(?MODULE_STRING, "making ~s", [Name]),
-    LeadNet = state:add(trader, self()),
+    LeadNet = state:add(trader, proc:inbox(Network)),
     LeadPid = spawn(fun() -> team_lead:init(LeadNet) end),
-    NewNetwork = state:add(Name, LeadPid, Netowrk),
+    NewNetwork = state:add(Name, LeadPid, Network),
     NewNetwork.
 
 
@@ -35,7 +35,8 @@ await_quote_alice(Network) ->
 
     case Msg of
         { quote, Value } -> 
-            log:info(?MODULE_STRING, "quote from alice is ~B", [Value]),
+            { Val, _ } = Value,
+            log:info(?MODULE_STRING, "quote from alice is ~B", [Val]),
             Reply = await_quote_bob(Network, Value),
             log:info(?MODULE_STRING, "reply to alice: ~s", [Reply]),
             proc:deliver_msg(Network, Alice, { reply, Reply }),
@@ -54,7 +55,8 @@ await_quote_bob(Network, AliceOffer) ->
 
     case Msg of
         { quote, Value } -> 
-            log:info(?MODULE_STRING, "quote from bob is ~B", [Value]),
+            { Val, _ } = Value,
+            log:info(?MODULE_STRING, "quote from bob is ~B", [Val]),
             if
                 Value <  AliceOffer ->
                     proc:deliver_msg(Network, Bob, { reply, accept }),

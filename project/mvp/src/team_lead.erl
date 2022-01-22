@@ -12,13 +12,13 @@ init(Network) ->
 
 
 deploy(Network) ->
-    log:info(?MODULE_STRING, "deploying"),
-    NewNetwork = make_team_members(Network, 10),
+    log:debug(?MODULE_STRING, "deploying"),
+    NewNetwork = make_team_members(Network, 2),
     start_quotes(NewNetwork).
 
 
 make_team_members(Network, Count) ->
-    MemNet_0 = state:add(lead, self()),
+    MemNet_0 = state:add(lead, proc:inbox(Network)),
     MemNet_1 = state:add(remaining, Count - 1, MemNet_0),
     MemPid = spawn(fun() -> team_member:init(MemNet_1) end),
 
@@ -29,7 +29,7 @@ make_team_members(Network, Count) ->
 
 start_quotes(Network) ->
     First = state:get(first, Network),
-    Msg = { quote, 0 },
+    Msg = { quote, {0, rand:seed(exsss, 777)} },
     log:info(?MODULE_STRING, "starting quoting procedure"),
     proc:deliver_msg(Network, First, Msg),
     await_quote(Network).
@@ -38,13 +38,12 @@ start_quotes(Network) ->
 await_quote(Network) ->
     log:info(?MODULE_STRING, "awaiting quote"),
     { _, Msg } = proc:receive_msg(Network),
-    log:info(?MODULE_STRING, "quote received: ~p", [Msg]),
 
     case Msg of
         { quote, Value } ->
             forward_quote(Network, Value);
 
-        _                ->
+        _Else ->
             log:error(?MODULE_STRING, "bad protocol"),
             proc:bad_protocol(Network)
     end.
@@ -52,8 +51,8 @@ await_quote(Network) ->
 
 forward_quote(Network, Value) ->
     Trader = state:get(trader, Network),
-
-    log:info(?MODULE_STRING, "forwarding quote of ~B to trader", [Value]),
+    { Val , _ } = Value,
+    log:info(?MODULE_STRING, "forwarding quote of ~B to trader", [Val]),
 
     proc:deliver_msg(Network, Trader, { quote, Value }),
     receive_answer(Network).
@@ -65,12 +64,12 @@ receive_answer(Network) ->
 
     case { Sender, Msg } of
 
-        { Trader, { answer, Answer }} -> 
+        { Trader, { reply, Answer }} -> 
             log:info(?MODULE_STRING, "received answer: ~s", [Answer]),
             log:warn(?MODULE_STRING, "finished"),
             proc:finished(Network);
 
-        _ ->
+        _Else ->
             log:error(?MODULE_STRING, "bad protocol"),
             proc:bad_protocol(Network)
     end.

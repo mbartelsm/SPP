@@ -4,7 +4,8 @@
     receive_msg_from/2,
     deliver_msg/3,
     finished/1,
-    bad_protocol/1
+    bad_protocol/1,
+    inbox/1
 ]).
 
 receive_msg(Network) ->
@@ -30,3 +31,7 @@ finished(Network) ->
 bad_protocol(Network) ->
     Super = state:get(super, Network),
     super:as_bad_protocol(Super).
+
+
+inbox(Network) ->
+    state:get(super, Network).

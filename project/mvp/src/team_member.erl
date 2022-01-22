@@ -13,7 +13,7 @@ init(Network) ->
 
 deploy(Network) ->
     Count = state:get(remaining, Network),
-    log:info(?MODULE_STRING, "deploying member ~B", [Count]),
+    log:debug(?MODULE_STRING, "deploying member ~B", [Count]),
 
     NewNetwork = if
         Count >  0 -> make_coworker(Network, Count);
@@ -43,26 +43,25 @@ connect_to_lead(Network) ->
 await_quote(Network) ->
     log:info(?MODULE_STRING, "awaiting quote"),
     { _, Msg } = proc:receive_msg(Network),
+    log:info(?MODULE_STRING, "received quote"),
 
     case Msg of
         { quote, Quote } ->
             forward_quote(Network, Quote);
 
-        _                ->
+        _ ->
             log:error(?MODULE_STRING, "bad protocol"),
             proc:bad_protocol(Network)
     end.
 
 
 forward_quote(Network, Quote) ->
-    log:info(?MODULE_STRING, "forwarding quote"),
     Next = state:get(next, Network),
     NewQuote = generate_quote(Quote),
 
     proc:deliver_msg(Network, Next, { quote, NewQuote }),
     log:warn(?MODULE_STRING, "finished"),
     proc:finished(Network).
-
 
 generate_quote({ Value, Rand }) ->
     { Plus, NewRand } = rand:uniform_s(100, Rand),

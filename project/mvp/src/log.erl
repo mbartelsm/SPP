@@ -10,55 +10,52 @@
     error/3
 ]).
 
-report(Level, Module, Message, Arguments) when is_list(Arguments) ->
-    LevelString = case Level of
-        debug -> "DEBUG";
-        info ->  "INFO";
-        warn ->  "WARN";
-        error -> "ERROR"
-    end,
+report(LevelString, Module, Message, Arguments) when is_list(Arguments) ->
     FullMessage = lists:flatten(io_lib:format(Message, Arguments)),
-    io:fwrite("[~s] ~s :: ~s ~n", [LevelString, Module, FullMessage]).
+    io:fwrite("[~s] ~w ~s :: ~s ~n", [LevelString, self(), Module, FullMessage]).
 
 
 debug(Module, Message) -> debug(Module, Message, []).
 debug(Module, Message, Arguments) ->
-    OsLevel = state:get("ERL_LEVEL", os:env()),
-
+    OsLevel = get_level(),
     if
-        OsLevel == "debug" -> report(debug, Module, Message, Arguments);
-        OsLevel /= "debug" -> ok
+        OsLevel >= 3 -> report("DEBUG", Module, Message, Arguments);
+        true -> ok
     end.
+
 
 info(Module, Message) -> info(Module, Message, []).
 info(Module, Message, Arguments) ->
-    OsLevel = state:get("ERL_LEVEL", os:env()),
-    
+    OsLevel = get_level(),
     if
-        (OsLevel == "info") 
-        or (OsLevel == "debug") -> report(info, Module, Message, Arguments);
+        OsLevel >= 2 -> report("INFO", Module, Message, Arguments);
         true -> ok
     end.
 
+
 warn(Module, Message) -> warn(Module, Message, []).
 warn(Module, Message, Arguments) ->
-    OsLevel = state:get("ERL_LEVEL", os:env()),
-    
+    OsLevel = get_level(),
     if
-        (OsLevel == "warn")
-        or (OsLevel == "info")
-        or (OsLevel == "debug") -> report(warn, Module, Message, Arguments);
+        OsLevel >= 1 -> report("WARN", Module, Message, Arguments);
         true -> ok
     end. 
 
+
 error(Module, Message) -> ?MODULE:error(Module, Message, []).
 error(Module, Message, Arguments) ->
-    OsLevel = state:get("ERL_LEVEL", os:env()),
-    
+    OsLevel = get_level(),
     if
-        (OsLevel == "error")
-        or (OsLevel == "warn")
-        or (OsLevel == "info")
-        or (OsLevel == "debug") -> report(error, Module, Message, Arguments);
+        OsLevel >= 0 -> report("ERROR", Module, Message, Arguments);
         true -> ok
+    end. 
+
+
+get_level() ->
+    LevelStr = os:getenv("ERL_LEVEL"),
+    case LevelStr of
+        "warn" -> 1;
+        "info" -> 2;
+        "debug" -> 3;
+        _ -> 0
     end. 
