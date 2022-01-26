@@ -18,7 +18,7 @@ debug: build
 	@echo
 	@echo EXECUTING DEBUG
 	@echo ======================================
-	erl -pa ./ebin/ -s main main
+	erl -noinput -noshell -pa ./ebin/ -s main main
 
 clean:
 	rm -fr ./ebin/
