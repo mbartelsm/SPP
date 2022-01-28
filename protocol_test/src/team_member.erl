@@ -1,16 +1,17 @@
+%% Module containing the logic for the team members
 -module(team_member).
 -export([
     init/1
 ]).
 
 
-% Inits
-
+%% Defers initialization to a supervisor
 init(Network) ->
-    % Start the supervisor and make it spawn us
     super:init(fun(N) -> deploy(N) end, Network).
 
 
+%% Deploys the next team member, or if finished deploying, link self to the team
+%% leader to forward the last quote to it.
 deploy(Network) ->
     Count = state:get(remaining, Network),
     log:debug(?MODULE_STRING, "deploying member ~B", [Count]),
@@ -23,6 +24,7 @@ deploy(Network) ->
     await_quote(NewNetwork).
 
 
+%% Makes next team member
 make_coworker(Network, Count) ->
     Lead = state:get(lead, Network),
 
@@ -33,13 +35,16 @@ make_coworker(Network, Count) ->
     state:add(next, CoPid, Network).
 
 
+%% Makes the team leader the last recipient
 connect_to_lead(Network) ->
     Lead = state:get(lead, Network),
     state:add(next, Lead, Network).
 
 
-% States
+%% States
+%% ---------
 
+%% Awaits for the quote from the previous team member
 await_quote(Network) ->
     log:info(?MODULE_STRING, "awaiting quote"),
     { _, Msg } = proc:receive_msg(Network),
@@ -55,6 +60,7 @@ await_quote(Network) ->
     end.
 
 
+%% Forwards the quote + own quote to the next team member
 forward_quote(Network, Quote) ->
     Next = state:get(next, Network),
     NewQuote = generate_quote(Quote),
@@ -63,6 +69,8 @@ forward_quote(Network, Quote) ->
     log:warn(?MODULE_STRING, "finished"),
     proc:finished(Network).
 
+
+%% Generates a random value for the quote
 generate_quote({ Value, Rand }) ->
     { Plus, NewRand } = rand:uniform_s(100, Rand),
     { Value + Plus, NewRand }.

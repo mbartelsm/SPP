@@ -1,5 +1,0 @@
-test01  Single module       Single process      Single function
-test02  Single module       Single process      Multiple functions
-test03  Single module       Multiple processes  Multiple functions
-test04  Multiple modules    Single process      Multiple functions
-test05  Multiple modules    Multiple processes  Multiple functions

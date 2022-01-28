@@ -1,3 +1,4 @@
+% Entrypoint module
 -module(main).
 -export([main/0]).
 

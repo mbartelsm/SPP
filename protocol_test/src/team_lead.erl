@@ -1,22 +1,22 @@
+%% Module containing the logic for the team leader role (Alice/Bob)/(C/D)
 -module(team_lead).
 -export([
     init/1
 ]).
 
 
-% Inits
-
+%% Defers initialization to a supervisor
 init(Network) ->
-    % Start the supervisor and make it spawn us
     super:init(fun(N) -> deploy(N) end, Network).
 
 
+%% Deploys subnetwork and starts initial state
 deploy(Network) ->
     log:debug(?MODULE_STRING, "deploying"),
-    NewNetwork = make_team_members(Network, 2),
+    NewNetwork = make_team_members(Network, 5),
     start_quotes(NewNetwork).
 
-
+%% Chain-initializes the team and returns the updated network state
 make_team_members(Network, Count) ->
     MemNet_0 = state:add(lead, proc:inbox(Network)),
     MemNet_1 = state:add(remaining, Count - 1, MemNet_0),
@@ -25,8 +25,10 @@ make_team_members(Network, Count) ->
     state:add(first, MemPid, Network).
 
 
-% States
+%% States
+%% ---------
 
+%% Informs the first team member to begin the quoting process
 start_quotes(Network) ->
     First = state:get(first, Network),
     Msg = { quote, {0, rand:seed(exsss, 777)} },
@@ -35,6 +37,7 @@ start_quotes(Network) ->
     await_quote(Network).
 
 
+%% Waits for the last quote to arrive
 await_quote(Network) ->
     log:info(?MODULE_STRING, "awaiting quote"),
     { _, Msg } = proc:receive_msg(Network),
@@ -49,6 +52,7 @@ await_quote(Network) ->
     end.
 
 
+%% Forwards the quote to the trader
 forward_quote(Network, Value) ->
     Trader = state:get(trader, Network),
     { Val , _ } = Value,
@@ -58,6 +62,7 @@ forward_quote(Network, Value) ->
     receive_answer(Network).
 
 
+%% Awaits for a response from the trader
 receive_answer(Network) ->
     Trader = state:get(trader, Network),
     { Sender, Msg } = proc:receive_msg(Network),
